@@ -21,3 +21,13 @@ suspend fun <T : Any> retryFor(
         result!!
     }
 }
+
+inline fun <T, R> T.tryOrNull(block: (T) -> R): R? {
+    if (this == null) return null
+
+    return try {
+        block(this)
+    } catch (e: Exception) {
+        null
+    }
+}
