@@ -10,9 +10,11 @@ import com.supercat.piclist.repository.network.PicturesService
 import kotlinx.coroutines.Dispatchers
 
 class PicturesSource(
-    private val picturesService: PicturesService
+    private val picturesService: PicturesService,
+    private val startKey: Int,
+    cachedPagesAmount: Int,
 ) : PagingSource<Int, PictureDto>() {
-    private val cache = LruCache<Int, List<PictureDto>>(10)
+    private val cache = LruCache<Int, List<PictureDto>>(cachedPagesAmount)
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, PictureDto> {
         return try {
@@ -24,9 +26,9 @@ class PicturesSource(
                 cache.put(pageNumber, it)
             }
 
-            val prevKey = if (pageNumber > 1) pageNumber - 1 else null
+            val prevKey = if (pageNumber > startKey) pageNumber - 1 else null
             val nextKey = if (response.isNotEmpty()) pageNumber + 1 else null
-            val prevPageSie = if (pageNumber == 1) 0 else params.loadSize
+            val prevPageSie = if (pageNumber == startKey) 0 else params.loadSize
 
             LoadResult.Page(
                 data = response,

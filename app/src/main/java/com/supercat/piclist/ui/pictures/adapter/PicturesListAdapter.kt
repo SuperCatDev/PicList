@@ -11,8 +11,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.Request
 import com.supercat.piclist.R
 import com.supercat.piclist.domain.model.PictureItem
+import com.supercat.piclist.domain.model.isPlaceHolder
+import com.supercat.piclist.presntation.pictures.PicturesListViewModel
 
 private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<PictureItem>() {
     override fun areContentsTheSame(oldItem: PictureItem, newItem: PictureItem): Boolean {
@@ -24,7 +27,7 @@ private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<PictureItem>() {
     }
 }
 
-class PicturesListAdapter(private val itemSize: Int) :
+class PicturesListAdapter(private val itemSize: Int, private val viewModel: PicturesListViewModel) :
     PagingDataAdapter<PictureItem, PicturesListAdapter.ViewHolder>(DIFF_CALLBACK) {
 
 
@@ -42,17 +45,21 @@ class PicturesListAdapter(private val itemSize: Int) :
             requestLayout()
         }
 
-        return ViewHolder(itemView)
+        return ViewHolder(itemView, viewModel)
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
-    //    holder.unbind()
+        holder.unbind()
     }
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class ViewHolder(itemView: View, private val viewModel: PicturesListViewModel) :
+        RecyclerView.ViewHolder(itemView) {
+        private var request: Request? = null
+
         fun bind(pictureItem: PictureItem?) {
+
             with(itemView.findViewById<ImageView>(R.id.imageView)) {
-                if (pictureItem == null) {
+                if (pictureItem.isPlaceHolder()) {
                     setImageDrawable(
                         ContextCompat.getDrawable(
                             itemView.context,
@@ -60,27 +67,23 @@ class PicturesListAdapter(private val itemSize: Int) :
                         )
                     )
                 } else {
-                    // setImageDrawable(ContextCompat.getDrawable(itemView.context, R.color.black))
-                    Glide.with(itemView)
-                        .load(pictureItem.url)
+                    viewModel.contentShowed()
+
+                    Glide.with(itemView.context)
+                        .load(pictureItem?.url)
                         .placeholder(R.drawable.ic_baseline_image_24)
                         .format(DecodeFormat.PREFER_RGB_565)
-                        .transition(DrawableTransitionOptions.withCrossFade())
+                        .transition(DrawableTransitionOptions.withCrossFade(100))
                         .into(this)
+                        .also {
+                            request = it.request
+                        }
                 }
             }
-
         }
 
         fun unbind() {
-            with(itemView.findViewById<ImageView>(R.id.imageView)) {
-                setImageDrawable(
-                    ContextCompat.getDrawable(
-                        itemView.context,
-                        R.drawable.ic_baseline_image_24
-                    )
-                )
-            }
+            request?.pause()
         }
     }
 }

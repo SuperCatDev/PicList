@@ -5,19 +5,27 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.github.terrakok.cicerone.Router
 import com.supercat.piclist.domain.PicturesListInteractor
+import com.supercat.piclist.domain.model.PictureItem
+import com.supercat.piclist.domain.model.getPictureItemPlaceholders
 import com.supercat.piclist.presntation.BaseViewModel
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.startWith
 
 class PicturesListViewModel(
-    private val interactor: PicturesListInteractor,
+    interactor: PicturesListInteractor,
     private val router: Router,
-    private val pictureSize: Int,
+    pictureSize: Int,
 ) : BaseViewModel() {
 
+    var placeholder: PagingData<PictureItem>? = PagingData.from(
+        getPictureItemPlaceholders(9)
+    )
+        private set
+
     val picturesPagingFlow = interactor.getPicturesListPagingFLow(pictureSize)
-        .onStart { emit(PagingData.from(emptyList())) }
         .cachedIn(viewModelScope)
+
+    fun contentShowed() {
+        placeholder = null
+    }
 
     override fun onBackPressAction() {
         router.exit()

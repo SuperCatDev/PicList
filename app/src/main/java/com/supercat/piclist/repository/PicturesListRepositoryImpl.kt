@@ -1,14 +1,21 @@
 package com.supercat.piclist.repository
 
-import androidx.paging.PagingSource
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import com.supercat.piclist.repository.dto.PictureDto
+import com.supercat.piclist.repository.network.PicturesService
 
 class PicturesListRepositoryImpl(
-    private val pagingSource: PagingSource<Int, PictureDto>
+    private val picturesService: PicturesService,
 ) : PicturesListRepository {
 
-    override fun getPicturesListPagingSource(): PagingSource<Int, PictureDto> {
-        return pagingSource
+    override fun getPager(config: PagingConfig): Pager<Int, PictureDto> {
+        return Pager(
+            config = config,
+            initialKey = 1,
+        ) {
+            PicturesSource(picturesService, 1, config.maxSize)
+        }
     }
 
     override fun getUrlForPicture(id: String, size: Int): String {

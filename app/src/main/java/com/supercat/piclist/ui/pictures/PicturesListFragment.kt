@@ -16,6 +16,7 @@ import com.supercat.piclist.presntation.pictures.PicturesListViewModel
 import com.supercat.piclist.ui.BaseFragment
 import com.supercat.piclist.ui.pictures.adapter.GridSpacingItemDecoration
 import com.supercat.piclist.ui.pictures.adapter.PicturesListAdapter
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
@@ -37,7 +38,7 @@ class PicturesListFragment : BaseFragment() {
         )
     }
     private val adapter by lazy(LazyThreadSafetyMode.NONE) {
-        PicturesListAdapter(itemSize)
+        PicturesListAdapter(itemSize, viewModel)
     }
 
     override fun onCreateView(
@@ -70,7 +71,13 @@ class PicturesListFragment : BaseFragment() {
         }
 
         lifecycleScope.launch {
-            viewModel.picturesPagingFlow.collect { adapter.submitData(it) }
+            viewModel.placeholder?.let {
+                adapter.submitData(it)
+            }
+
+            viewModel.picturesPagingFlow.collectLatest {
+                adapter.submitData(it)
+            }
         }
     }
 
