@@ -9,12 +9,10 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.Request
 import com.supercat.piclist.R
 import com.supercat.piclist.domain.model.PictureItem
-import com.supercat.piclist.domain.model.isPlaceHolder
 import com.supercat.piclist.presntation.pictures.PicturesListViewModel
 
 private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<PictureItem>() {
@@ -55,9 +53,12 @@ class PicturesListAdapter(private val itemSize: Int, private val viewModel: Pict
     class ViewHolder(itemView: View, private val viewModel: PicturesListViewModel) :
         RecyclerView.ViewHolder(itemView) {
         private var request: Request? = null
+        private lateinit var item: PictureItem
+        private val onClickListener = View.OnClickListener {
+            viewModel.navigateToPicture(item)
+        }
 
         fun bind(pictureItem: PictureItem?) {
-
             with(itemView.findViewById<ImageView>(R.id.imageView)) {
                 if (pictureItem.isPlaceHolder()) {
                     setImageDrawable(
@@ -67,12 +68,14 @@ class PicturesListAdapter(private val itemSize: Int, private val viewModel: Pict
                         )
                     )
                 } else {
+                    item = pictureItem!!
+                    itemView.setOnClickListener(onClickListener)
                     viewModel.contentShowed()
 
                     Glide.with(itemView.context)
-                        .load(pictureItem?.url)
+                        .load(pictureItem.url)
                         .placeholder(R.drawable.ic_baseline_image_24)
-                        .format(DecodeFormat.PREFER_RGB_565)
+                        //.format(DecodeFormat.PREFER_RGB_565)
                         .transition(DrawableTransitionOptions.withCrossFade(100))
                         .into(this)
                         .also {
@@ -83,7 +86,12 @@ class PicturesListAdapter(private val itemSize: Int, private val viewModel: Pict
         }
 
         fun unbind() {
+            itemView.setOnClickListener(null)
             request?.pause()
         }
+    }
+
+    companion object {
+        fun PictureItem?.isPlaceHolder(): Boolean = this == null || url.isEmpty()
     }
 }

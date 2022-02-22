@@ -3,6 +3,7 @@ package com.supercat.piclist.domain.model
 data class PictureItem(
     val id: String,
     val url: String,
+    val download_url: String,
 )
 
 fun getPictureItemPlaceholders(amount: Int): List<PictureItem> {
@@ -11,12 +12,11 @@ fun getPictureItemPlaceholders(amount: Int): List<PictureItem> {
         list.add(
             PictureItem(
                 id = it.toString(),
-                url = ""
+                url = "",
+                download_url = "",
             )
         )
     }
 
     return list
 }
-
-fun PictureItem?.isPlaceHolder(): Boolean = this == null || url.isEmpty()

@@ -27,7 +27,11 @@ class PicturesListIntractorImpl(
 
         return pager.flow.map {
             it.map { dto ->
-                PictureItem(id = dto.id, url = repository.getUrlForPicture(dto.id, pictureSize))
+                PictureItem(
+                    id = dto.id,
+                    url = repository.getUrlForPicture(dto.id, pictureSize),
+                    download_url = dto.download_url,
+                )
             }
         }
     }
